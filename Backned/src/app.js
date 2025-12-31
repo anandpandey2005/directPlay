@@ -14,7 +14,7 @@ app.use(express.json());
 const publicPath = path.join(__dirname, "..", "public");
 app.use(express.static(publicPath));
 
-const M3U_SOURCES = ["https://iptv-org.github.io/iptv/countries/hin.m3u"];
+const M3U_SOURCES = ["https://iptv-org.github.io/iptv/languages/hin.m3u"];
 
 const parseM3U = (data) => {
   const lines = data.split("\n");
