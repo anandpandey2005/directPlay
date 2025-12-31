@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Direct Play</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #e26715;
+            --bg: #0c1014;
+            --surface: #07090c;
+            --glass: rgba(115, 202, 140, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        *::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .player-section {
+            width: 100%;
+            background: #000;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        video {
+            width: 100%;
+            max-height: 100vh;
+            object-fit: cover;
+        }
+
+        video::-webkit-media-controls-timeline {
+            display: none !important;
+        }
+
+        video::-webkit-media-controls-current-time-display {
+            display: none !important;
+        }
+
+        video::-webkit-media-controls-time-remaining-display {
+            display: none !important;
+        }
+
+        video::-moz-media-controls-timeline,
+        video::-moz-media-controls-current-time-display {
+            display: none !important;
+        }
+
+        .content-area {
+            width: 100%;
+            padding: 20px 20px 0px 20px;
+
+        }
+
+        .content-area2 {
+            width: 100%;
+            height: 300px;
+            overflow: auto;
+            padding: 10px 20px 0px 20px;
+        }
+
+        .playing-info {
+            margin-bottom: 20px;
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .category-nav {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .cat-btn {
+            padding: 12px 24px;
+            border-radius: 50px;
+            background: var(--surface);
+            border: 1px solid var(--glass);
+            color: #94a3b8;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .cat-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        #channelList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .channel-item {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--glass);
+
+        }
+
+        .channel-item:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            background: #1a2028;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .channel-item img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            background: #fff;
+            padding: 8px;
+            border-radius: 15px;
+            margin-bottom: 12px;
+        }
+
+        .channel-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        .footer {
+            background-color: var(--surface);
+            border-top: 1px solid var(--glass);
+            padding: 30px 20px;
+            margin-top: 50px;
+            color: #94a3b8;
+        }
+
+        .footer-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .footer-info strong {
+            color: var(--primary);
+        }
+
+        .dev-link {
+            color: #f8fafc;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .dev-link:hover {
+            color: var(--primary);
+            border-bottom: 1px solid var(--primary);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: #f8fafc;
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: var(--glass);
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 600px) {
+            .footer-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+        }
+
+
+        @media (max-width: 600px) {
+            #channelList {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 12px;
+            }
+
+            .channel-item {
+                padding: 15px;
+            }
+
+            .channel-item img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .playing-info {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="video-container">
+        <video id="video" controls controlsList="nodownload noplaybackrate" poster="\Direct Play.jpg"></video>
+    </div>
+
+    <div class="content-area">
+        <div class="playing-info" id="playingNow">Select a Channel</div>
+
+        <nav class="category-nav" id="categoryNav">
+            <button class="cat-btn active" onclick="filterCategory('All', this)">All</button>
+            <button class="cat-btn" onclick="filterCategory('News', this)">News</button>
+            <button class="cat-btn" onclick="filterCategory('Movies', this)">Movies</button>
+            <button class="cat-btn" onclick="filterCategory('Sports', this)">Sports</button>
+            <button class="cat-btn" onclick="filterCategory('Entertainment', this)">Entertainment</button>
+            <button class="cat-btn" onclick="filterCategory('Music', this)">Music</button>
+        </nav>
+    </div>
+    <div class="content-area2">
+        <div id="channelList">
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-info">
+                <p>&copy; 2025 <strong>Direct</strong><strong style="color: #f8fafc;">Play</strong>. All rights
+                    reserved.</p>
+                <p>Designed & Developed by <a href="https://www.linkedin.com/in/anandpandey2005/" target="_blank"
+                        class="dev-link">Anand Pandey</a>
+                </p>
+            </div>
+
+            <div class="footer-links">
+                <a href="https://www.linkedin.com/in/anandpandey2005/" target="_blank" title="LinkedIn">
+                    <span class="icon">🔗</span> LinkedIn
+                </a>
+                <a href="https://github.com/anandpandey2005/directPlay" target="_blank" title="GitHub Repository">
+                    <span class="icon">📁</span> GitHub Repo
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let allChannels = [];
+        let hls = null;
+        const video = document.getElementById('video');
+        const playingNow = document.getElementById('playingNow');
+
+        fetch('/api/channels')
+            .then(res => res.json())
+            .then(data => {
+                allChannels = data;
+                renderChannels(allChannels);
+            })
+            .catch(err => console.error("API Error:", err));
+
+        function renderChannels(channels) {
+            const list = document.getElementById('channelList');
+            list.innerHTML = channels.map(ch => `
+                <div class="channel-item" onclick="playStream('${ch.url}', '${ch.name}')">
+                    <img src="${ch.logo || 'https://via.placeholder.com/70'}" alt="${ch.name}">
+                    <div class="channel-name">${ch.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filtered = cat === 'All'
+                ? allChannels
+                : allChannels.filter(ch => ch.category === cat);
+
+            renderChannels(filtered);
+        }
+
+        function playStream(url, name) {
+            playingNow.innerText = `Streaming: ${name}`;
+            const proxyUrl = `/proxy?url=${encodeURIComponent(url)}`;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (hls) hls.destroy();
+
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    capLevelToPlayerSize: true,
+                    autoStartMaxSize: true
+                });
+                hls.loadSource(proxyUrl);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = proxyUrl;
+                video.play();
+            }
+        }
+    </script>
+</body>
+
+</html>
